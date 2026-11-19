@@ -8,6 +8,9 @@ def bundle(state):
     writer.writerow(['对账',rid,'','','',json.dumps(state.get('reconcile',{}),ensure_ascii=False,sort_keys=True)])
     for row in state.get('calculations',[]):writer.writerow(['计算',rid,row.get('line',''),row.get('id',''),row.get('code',''),json.dumps(row,ensure_ascii=False,sort_keys=True)])
     for row in state['quarantine']:writer.writerow(['隔离',rid,row['line'],row.get('id',''),row['code'],json.dumps(row.get('raw',{}),ensure_ascii=False,sort_keys=True)])
+    for task in state.get('review_tasks',[]):
+        evidence={k:task[k] for k in ('bucket','zone_name','exposure','uncertainty','narrowing','score','rank','reason') if k in task}
+        writer.writerow(['复核任务',rid,task.get('line',''),task.get('zone',''),task.get('status',''),json.dumps(evidence,ensure_ascii=False,sort_keys=True)])
     return '\ufeff'+out.getvalue()
 
 def checksum(state):

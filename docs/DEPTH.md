@@ -12,7 +12,7 @@
 | M4 重叠约束 | 查看并复算重叠约束 | `/api/m4_segments` | `app/modules/m4_segments/rules.py` | `tests/test_segments.py` |
 | M5 人数估界 | 查看并复算人数估界 | `/api/m5_calculate` | `app/modules/m5_calculate/rules.py` | `tests/test_calculate.py` |
 | M6 日汇对账 | 查看并复算日汇对账 | `/api/m6_reconcile` | `app/modules/m6_reconcile/compare.py` | `tests/test_reconcile.py` |
-| M7 报告归档 | 查看并复算报告归档 | `/api/m7_archive` | `app/modules/m7_archive/export_out.py` | `tests/test_archive.py` |
+| M7 报告归档 | 查看并复算报告归档 | `/api/m7_archive` | `app/modules/m7_archive/export_out.py`、`app/modules/m7_archive/review.py` | `tests/test_archive.py`、`tests/test_review.py` |
 
 ## 陷阱登记
 
@@ -31,6 +31,10 @@
 | TRAP-26 | 旧版本复核 | 覆盖新结论 | 事务条件更新 | `app/store.py` | `tests/test_archive.py::test_stale_review` |
 | TRAP-11 | 时区混用 | 同刻不同桶 | UTC归整 | `app/modules/m2_mapping/coerce.py` | `tests/test_versions.py::test_same_instant` |
 | TRAP-19 | 三方约束矛盾 | 输出伪精确数 | 非负原子区域可行检查 | `app/modules/m5_calculate/rules.py` | `tests/test_calculate.py::test_three_way_contradiction` |
+| TRAP-31 | 复核顺序单一维度 | 纯客流漏掉高收窄设备，纯不确定度放过高客流区 | 按预期可确认客次(可收窄×客流暴露)降序 | `app/modules/m7_archive/review.py` | `tests/test_review.py::test_order_by_expected_confirmed_customers` |
+| TRAP-32 | 补录全量重算 | 无关时段被重判 | 只重判受影响时段，其余沿用旧结论，被取代隔离记录留存 | `app/modules/m7_archive/review.py` | `tests/test_review.py::test_supplement_rejudges_only_affected_bucket` |
+| TRAP-33 | 重跑新增复核任务 | 任务膨胀重复 | 任务按设备+时段确定性主键幂等入库 | `app/store.py` | `tests/test_review.py::test_same_batch_creates_no_new_tasks` |
+| TRAP-34 | 切换中途失败 | 新版本半写入 | 批次、任务、最新指针同事务，失败保留旧版 | `app/store.py` | `tests/test_review.py::test_failed_switch_keeps_old_version` |
 
 ## 对账规则
 

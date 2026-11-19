@@ -6,6 +6,7 @@ from app.workflow import run,load
 from app import store
 from app.web import payload
 from app.modules.m7_archive.export_out import bundle
+from app.modules.m7_archive.review import parse_supplement,supplement_content,merge_scope
 
 def create_app():
     app=Flask(__name__);app.config['MAX_CONTENT_LENGTH']=2_000_000
@@ -30,6 +31,14 @@ def create_app():
         data=request.get_json(silent=True) or {}
         if not isinstance(data.get('version'),int):raise DomainError('VERSION','请提交复核版本')
         return jsonify(store.review(run_id,data['version'],data.get('decision')))
+    @app.post('/api/runs/<run_id>/supplement')
+    def supplement(run_id):
+        old=store.get(run_id)
+        bucket,zone,count=parse_supplement(request.get_json(silent=True) or {})
+        content,_=supplement_content(old,bucket,zone,count)
+        fresh=run(content,old.get('manifest',{}).get('parameters',{}))
+        merged=merge_scope(old,fresh,{bucket})
+        return jsonify(store.save(merged['run_id'],merged))
     @app.get('/api/archive/<run_id>/export.csv')
     def download(run_id):
         state=store.get(run_id)
